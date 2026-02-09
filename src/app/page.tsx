@@ -507,7 +507,8 @@ export default function Home() {
         const inputRect = inputArea.getBoundingClientRect();
         const containerRect = scrollContainer.getBoundingClientRect();
         const distanceFromBottom = inputRect.bottom - containerRect.bottom;
-        return distanceFromBottom <= 100 && scrollHeight - scrollTop - clientHeight < 100;
+        // 입력창이 화면 하단에서 50px 이내에 있고, 스크롤도 바닥 근처면 진짜 바닥
+        return distanceFromBottom <= 50 && scrollHeight - scrollTop - clientHeight < 50;
       }
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 20;
       return isAtBottom;
@@ -520,17 +521,17 @@ export default function Home() {
       const commentsRect = commentsSection.getBoundingClientRect();
       const containerRect = scrollContainer.getBoundingClientRect();
       const distanceFromBottom = commentsRect.bottom - containerRect.bottom;
-      return distanceFromBottom <= 50 && scrollHeight - scrollTop - clientHeight < 50;
+      return distanceFromBottom <= 30 && scrollHeight - scrollTop - clientHeight < 30;
     }
     
     // 댓글 입력창의 실제 바닥 위치 확인
     const inputRect = commentsInput.getBoundingClientRect();
     const containerRect = scrollContainer.getBoundingClientRect();
     
-    // 스크롤 위치가 댓글 입력창 아래 100px 이내에 있으면 진짜 바닥
+    // 스크롤 위치가 댓글 입력창 아래 30px 이내에 있으면 진짜 바닥
     const distanceFromBottom = inputRect.bottom - containerRect.bottom;
     const scrollDistanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    const isAtRealBottom = distanceFromBottom <= 100 && scrollDistanceFromBottom < 100;
+    const isAtRealBottom = distanceFromBottom <= 30 && scrollDistanceFromBottom < 30;
     
     return isAtRealBottom;
   }
@@ -779,18 +780,37 @@ export default function Home() {
       return;
     }
     
-    const threshold = 600; // 임계값 3배 상향 (200 -> 600)
+    // 진짜 바닥에 도달했는지 최종 확인 - 도달하지 않았으면 완전 차단
+    const atRealBottom = isAtRealBottom(target, storyIdx);
+    if (!atRealBottom) {
+      swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = false;
+      swipeRef.current.velocity = 0;
+      return;
+    }
+    
+    // 진짜 바닥에 도달했을 때만, 매우 강한 스와이프(pull-to-refresh 느낌)로만 넘어가게
+    // 터치 종료 시점 판정 삭제 - 자동으로 넘어가는 로직 제거
+    // 오직 매우 강한 스와이프만 인식
+    const strongSwipeThreshold = 1200; // 매우 강한 스와이프 임계값 (pull-to-refresh 느낌)
+    const minSwipeSpeed = 3; // 최소 스와이프 속도 (px/ms) - 빠르게 밀어야 함
 
-    // 상하 스와이프 = 작품 이동
-    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > threshold) {
-      if (deltaY > 0) {
-        goToPrevStory();
-      } else {
+    // 스와이프 속도 계산
+    const swipeSpeed = Math.abs(deltaY) / touchDuration; // px/ms
+    
+    // 상하 스와이프 = 작품 이동 (매우 강한 스와이프 + 빠른 속도만)
+    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > strongSwipeThreshold && swipeSpeed > minSwipeSpeed) {
+      // 아래로 매우 강하게 빠르게 밀었을 때만 다음 스토리로
+      if (deltaY < 0) {
         goToNextStory();
       }
+      // 위로 매우 강하게 빠르게 밀었을 때만 이전 스토리로
+      else if (deltaY > 0) {
+        goToPrevStory();
+      }
     }
-    // 좌우 스와이프 = Universe 이동
-    else if (Math.abs(deltaX) > threshold) {
+    // 좌우 스와이프 = Universe 이동 (매우 강한 스와이프 + 빠른 속도만)
+    else if (Math.abs(deltaX) > strongSwipeThreshold && swipeSpeed > minSwipeSpeed) {
       if (deltaX > 0) {
         goToPrevUniverse();
       } else {
