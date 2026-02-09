@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, type TouchEvent } from "react";
+import { useState, useRef, useEffect, type TouchEvent } from "react";
 import { useRouter } from "next/navigation";
 import { saveToLibrary } from "./lib/library";
 import ShareCard from "./components/ShareCard";
@@ -352,6 +352,30 @@ export default function Home() {
   });
   const [heartAnimations, setHeartAnimations] = useState<{ [key: string]: boolean }>({});
   
+  // 인앱 브라우저 감지 및 안내 팝업 상태
+  const [showBrowserWarning, setShowBrowserWarning] = useState(false);
+  
+  // 인앱 브라우저 감지 (시연용 - 로그인 필요 시 안내)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      // 인앱 브라우저 감지 (카카오톡, 네이버, 인스타그램 등)
+      const isInAppBrowser = 
+        userAgent.includes("kakaotalk") ||
+        userAgent.includes("naver") ||
+        userAgent.includes("line") ||
+        userAgent.includes("instagram") ||
+        userAgent.includes("fban") || // Facebook
+        userAgent.includes("fbav") || // Facebook
+        (userAgent.includes("wv") && userAgent.includes("android")); // Android WebView
+      
+      // 로그인이 필요한 경우에만 경고 표시 (현재는 시연용으로 비활성화)
+      // if (isInAppBrowser) {
+      //   setShowBrowserWarning(true);
+      // }
+    }
+  }, []);
+  
   // 포인트 시스템 (수익 모델)
   const [userPoints, setUserPoints] = useState(1200); // 유저 보유 포인트 (하드코딩)
   const [unlockedSnapshots, setUnlockedSnapshots] = useState<Set<string>>(new Set([
@@ -700,6 +724,41 @@ export default function Home() {
   }
 
   return (
+    <>
+      {/* 인앱 브라우저 안내 팝업 */}
+      {showBrowserWarning && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-md bg-zinc-900 border border-white/20 rounded-2xl p-6 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setShowBrowserWarning(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-200 transition-colors"
+              aria-label="닫기"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="text-center">
+              <div className="mb-4 text-4xl">⚠️</div>
+              <h3 className="text-xl font-bold text-zinc-100 mb-2">브라우저 안내</h3>
+              <p className="text-zinc-300 mb-6 leading-relaxed">
+                현재 인앱 브라우저에서는 일부 기능이 제한될 수 있습니다.
+                <br />
+                <span className="text-amber-400 font-semibold">Chrome이나 Safari 브라우저에서 열어주세요.</span>
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowBrowserWarning(false)}
+                className="w-full px-4 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium transition-colors"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     <div className="h-screen overflow-hidden bg-[#050508]">
       <div
         className="pointer-events-none fixed inset-0 bg-gradient-to-b from-violet-950/15 via-transparent to-cyan-950/5"
