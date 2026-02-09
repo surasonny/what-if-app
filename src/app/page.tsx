@@ -411,10 +411,18 @@ export default function Home() {
   };
   
   // 스와이프 관련
-  const swipeRef = useRef<{ startX: number; startY: number; isSwiping: boolean }>({
+  const swipeRef = useRef<{ 
+    startX: number; 
+    startY: number; 
+    isSwiping: boolean;
+    scrollContainer: HTMLElement | null;
+    isScrollingComments: boolean;
+  }>({
     startX: 0,
     startY: 0,
     isSwiping: false,
+    scrollContainer: null,
+    isScrollingComments: false,
   });
 
   // 작품(Story) 전환 함수 - 상하 스와이프
@@ -469,24 +477,98 @@ export default function Home() {
     goToUniverse(currentUniverseIndex + 1);
   }
 
+  // 댓글 영역 스크롤 상태 확인 함수
+  function isCommentsScrolling(element: HTMLElement | null): boolean {
+    if (!element) return false;
+    
+    // 댓글 영역인지 확인 (data-comments-section 속성 또는 클래스로 판단)
+    const commentsSection = element.closest('[data-comments-section]');
+    if (!commentsSection) return false;
+    
+    const scrollContainer = commentsSection as HTMLElement;
+    const scrollTop = scrollContainer.scrollTop;
+    const scrollHeight = scrollContainer.scrollHeight;
+    const clientHeight = scrollContainer.clientHeight;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 10; // 10px 여유
+    
+    // 댓글 영역 내부에서 스크롤 중이고, 바닥에 도달하지 않았으면 true
+    return !isAtBottom;
+  }
+
+  // 터치 시작 지점이 보호 영역인지 확인
+  function isProtectedArea(element: HTMLElement | null): boolean {
+    if (!element) return false;
+    
+    // 제목 영역 보호
+    const titleArea = element.closest('[data-title-area]');
+    if (titleArea) return true;
+    
+    // 스냅샷 버튼 영역 보호
+    const snapshotButton = element.closest('[data-snapshot-button]');
+    if (snapshotButton) return true;
+    
+    return false;
+  }
+
   // 터치 이벤트 핸들러 - 상하 스와이프(작품), 좌우 스와이프(Universe)
   function handleTouchStart(e: TouchEvent) {
     if (isTransitioning) return;
+    
+    const target = e.target as HTMLElement;
+    
+    // 보호 영역 터치 시 스와이프 차단
+    if (isProtectedArea(target)) {
+      swipeRef.current.isSwiping = false;
+      return;
+    }
+    
+    // 댓글 영역 스크롤 중인지 확인
+    swipeRef.current.isScrollingComments = isCommentsScrolling(target);
+    
     swipeRef.current.startX = e.touches[0].clientX;
     swipeRef.current.startY = e.touches[0].clientY;
     swipeRef.current.isSwiping = false;
+    swipeRef.current.scrollContainer = target.closest('[data-comments-section]') as HTMLElement;
   }
 
   function handleTouchMove(e: TouchEvent) {
     if (isTransitioning) return;
+    
+    const target = e.target as HTMLElement;
+    
+    // 보호 영역 터치 시 스와이프 차단
+    if (isProtectedArea(target)) {
+      swipeRef.current.isSwiping = false;
+      return;
+    }
+    
+    // 댓글 영역 스크롤 중이면 스와이프 차단
+    if (swipeRef.current.isScrollingComments) {
+      const scrollContainer = swipeRef.current.scrollContainer;
+      if (scrollContainer && isCommentsScrolling(scrollContainer)) {
+        swipeRef.current.isSwiping = false;
+        return;
+      }
+      // 스크롤이 바닥에 도달했는지 확인
+      const scrollTop = scrollContainer?.scrollTop || 0;
+      const scrollHeight = scrollContainer?.scrollHeight || 0;
+      const clientHeight = scrollContainer?.clientHeight || 0;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+      
+      if (!isAtBottom) {
+        swipeRef.current.isSwiping = false;
+        return;
+      }
+    }
+    
     if (!swipeRef.current.isSwiping) {
       const deltaX = Math.abs(e.touches[0].clientX - swipeRef.current.startX);
       const deltaY = Math.abs(e.touches[0].clientY - swipeRef.current.startY);
-      // 상하 스와이프 우선 (작품 이동)
-      if (deltaY > deltaX && deltaY > 10) {
+      // 상하 스와이프 우선 (작품 이동) - 임계값 상향 (10 -> 30)
+      if (deltaY > deltaX && deltaY > 30) {
         swipeRef.current.isSwiping = true;
-      } else if (deltaX > deltaY && deltaX > 10) {
-        // 좌우 스와이프 (Universe 이동)
+      } else if (deltaX > deltaY && deltaX > 30) {
+        // 좌우 스와이프 (Universe 이동) - 임계값 상향
         swipeRef.current.isSwiping = true;
       }
     }
@@ -495,14 +577,45 @@ export default function Home() {
   function handleTouchEnd(e: TouchEvent) {
     if (isTransitioning || !swipeRef.current.isSwiping) {
       swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = false;
       return;
+    }
+    
+    const target = e.target as HTMLElement;
+    
+    // 보호 영역 터치 시 스와이프 차단
+    if (isProtectedArea(target)) {
+      swipeRef.current.isSwiping = false;
+      return;
+    }
+    
+    // 댓글 영역 스크롤 중이면 스와이프 차단
+    if (swipeRef.current.isScrollingComments) {
+      const scrollContainer = swipeRef.current.scrollContainer;
+      if (scrollContainer && isCommentsScrolling(scrollContainer)) {
+        swipeRef.current.isSwiping = false;
+        swipeRef.current.isScrollingComments = false;
+        return;
+      }
+      
+      // 댓글 영역 바닥에 도달했는지 최종 확인
+      const scrollTop = scrollContainer?.scrollTop || 0;
+      const scrollHeight = scrollContainer?.scrollHeight || 0;
+      const clientHeight = scrollContainer?.clientHeight || 0;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+      
+      if (!isAtBottom) {
+        swipeRef.current.isSwiping = false;
+        swipeRef.current.isScrollingComments = false;
+        return;
+      }
     }
     
     const endX = e.changedTouches[0].clientX;
     const endY = e.changedTouches[0].clientY;
     const deltaX = endX - swipeRef.current.startX;
     const deltaY = endY - swipeRef.current.startY;
-    const threshold = 50;
+    const threshold = 100; // 임계값 상향 (50 -> 100)
 
     // 상하 스와이프 = 작품 이동
     if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > threshold) {
@@ -521,6 +634,7 @@ export default function Home() {
       }
     }
     swipeRef.current.isSwiping = false;
+    swipeRef.current.isScrollingComments = false;
   }
 
   async function handleRevolution() {
@@ -1010,7 +1124,7 @@ export default function Home() {
                         </div>
                         
                         {/* 작품 제목 - 카드 상단에 크게 표시 */}
-                        <div className="mb-4">
+                        <div className="mb-4" data-title-area>
                           <h2 className="text-3xl sm:text-4xl font-bold text-zinc-100 mb-2 leading-tight">
                             &lt;{story.title}&gt;
                           </h2>
@@ -1261,7 +1375,7 @@ export default function Home() {
                             
                             // 시연을 위해 항상 표시 (잠금 해제 여부와 관계없이)
                             return (
-                              <div className="relative z-50 mb-3">
+                              <div className="relative z-50 mb-3" data-snapshot-button>
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1386,6 +1500,7 @@ export default function Home() {
                       {/* 댓글 영역 - 본문 바로 아래에 위치, 스크롤하면 바로 보임 */}
                       {story.comments && (
                         <div 
+                          data-comments-section
                           className="mt-8 pt-6 border-t border-white/10 relative bg-gray-900 rounded-t-2xl -mx-5 sm:-mx-6 px-5 sm:px-6 pb-6"
                           style={{ 
                             zIndex: 50,
