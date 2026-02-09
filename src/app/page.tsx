@@ -1095,14 +1095,8 @@ export default function Home() {
               overflowY: "scroll",
             }}
             onScroll={(e) => {
-              const container = e.currentTarget;
-              const scrollTop = container.scrollTop;
-              const cardHeight = container.clientHeight;
-              const currentIndex = Math.round(scrollTop / cardHeight);
-              if (currentIndex !== currentStoryIndex && currentIndex >= 0 && currentIndex < stories.length) {
-                setCurrentStoryIndex(currentIndex);
-                setCurrentUniverseIndex(0); // 작품 변경 시 첫 번째 Universe로 리셋
-              }
+              // 스크롤 스냅 제거로 인해 자동 인덱스 변경 비활성화
+              // 수동 스와이프만으로 작품 전환
             }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -1138,14 +1132,14 @@ export default function Home() {
                   key={`story-${story.id}-${storyIdx}`}
                   className="w-full relative"
                   style={{
-                    minHeight: "calc(100vh - 80px)",
+                    minHeight: "100vh", // 화면 꽉 차게
                   }}
                 >
                   {/* 카드 컨테이너 - 화면 전체를 차지 */}
                   <div
-                    className={`relative w-full h-full ${themeBg} transition-all duration-500`}
+                    className={`relative w-full ${themeBg} transition-all duration-500`}
                     style={{
-                      height: "100%",
+                      minHeight: "100vh", // 화면 꽉 차게
                     }}
                   >
                     {/* 반투명 검은색 레이어 - 가독성 향상 */}
@@ -1153,10 +1147,12 @@ export default function Home() {
                     
                     {/* 본문 + 댓글을 담는 스크롤 가능한 컨테이너 */}
                     <div 
-                      className="relative w-full h-full overflow-y-auto z-20" 
+                      className="relative w-full overflow-y-auto z-20" 
                       style={{ 
                         scrollbarWidth: "thin", 
-                        scrollbarColor: "rgba(255,255,255,0.1) transparent" 
+                        scrollbarColor: "rgba(255,255,255,0.1) transparent",
+                        minHeight: "100vh", // 화면 꽉 차게
+                        maxHeight: "100vh", // 최대 높이 제한
                       }}
                       onTouchStart={isStoryActive ? handleTouchStart : undefined}
                       onTouchMove={isStoryActive ? handleTouchMove : undefined}
@@ -1556,6 +1552,11 @@ export default function Home() {
                             <span>공유하기</span>
                           </button>
                         </div>
+                      )}
+                      
+                      {/* 입력창 아래 충분한 여백 - 두 번째 스토리로 넘어가기 전 확보 */}
+                      {isStoryActive && currentUniverseForStory && (
+                        <div className="pb-20" />
                       )}
                       
                       {/* 댓글 영역 - 본문 바로 아래에 위치, 스크롤하면 바로 보임 */}
