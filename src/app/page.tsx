@@ -929,7 +929,7 @@ export default function Home() {
                       onTouchEnd={isStoryActive ? handleTouchEnd : undefined}
                     >
                       {/* 본문 영역 - 삽화와 텍스트 */}
-                      <div className="relative flex flex-col p-5 sm:p-6">
+                      <div className="relative flex flex-col p-5 sm:p-6 pt-[120px] sm:pt-[140px]">
                         {/* 상단 뱃지 - 주간 랭킹 또는 급상승 */}
                         <div className="mb-4 flex gap-2">
                           {storyIdx === 0 ? (
@@ -952,11 +952,11 @@ export default function Home() {
                         
                         {/* 작품 제목 - 카드 상단에 크게 표시 */}
                         <div className="mb-4">
-                          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-100 mb-2">
+                          <h2 className="text-3xl sm:text-4xl font-bold text-zinc-100 mb-2 leading-tight">
                             &lt;{story.title}&gt;
                           </h2>
                           {story.genre && (
-                            <p className="text-[10px] font-medium uppercase tracking-widest text-violet-400/70">
+                            <p className="text-[11px] sm:text-[12px] font-medium uppercase tracking-widest text-violet-400/70">
                               {story.genre}
                             </p>
                           )}
@@ -1214,16 +1214,12 @@ export default function Home() {
                                     }
                                   }}
                                   disabled={!isUnlocked && userPoints < snapshotCost}
-                                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/80 border border-white/20 text-white transition-all shadow-[0_2px_8px_rgba(255,255,255,0.1)] ring-1 ring-cyan-400/30 ${
+                                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-black/80 border border-white/20 text-white transition-all shadow-[0_2px_8px_rgba(255,255,255,0.1)] ring-1 ring-cyan-400/30 ${
                                     isUnlocked || userPoints >= snapshotCost
                                       ? "hover:bg-black/90 hover:border-white/30 hover:shadow-[0_4px_12px_rgba(255,255,255,0.15)] hover:ring-cyan-400/50 active:scale-95 cursor-pointer"
                                       : "opacity-50 cursor-not-allowed"
                                   }`}
                                 >
-                                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  </svg>
                                   <span className="text-sm font-medium">
                                     📸 스냅샷 15피스
                                   </span>
