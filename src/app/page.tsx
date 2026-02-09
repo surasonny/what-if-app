@@ -447,8 +447,8 @@ export default function Home() {
       setCurrentStoryIndex(index);
       setCurrentUniverseIndex(0); // 작품 변경 시 첫 번째 Universe로 리셋
       setFadeKey((k) => k + 1);
-      setTimeout(() => setIsTransitioning(false), 300);
-    }, 150);
+      setTimeout(() => setIsTransitioning(false), 800); // 애니메이션 속도 0.8초로 증가 (300 -> 800)
+    }, 200); // 초기 딜레이도 증가 (150 -> 200)
   }
 
   function goToPrevStory() {
@@ -473,8 +473,8 @@ export default function Home() {
     setTimeout(() => {
       setCurrentUniverseIndex(index);
       setFadeKey((k) => k + 1);
-      setTimeout(() => setIsTransitioning(false), 300);
-    }, 150);
+      setTimeout(() => setIsTransitioning(false), 800); // 애니메이션 속도 0.8초로 증가 (300 -> 800)
+    }, 200); // 초기 딜레이도 증가 (150 -> 200)
   }
 
   function goToPrevUniverse() {
@@ -585,11 +585,18 @@ export default function Home() {
     if (!swipeRef.current.isSwiping) {
       const deltaX = Math.abs(e.touches[0].clientX - swipeRef.current.startX);
       const deltaY = Math.abs(e.touches[0].clientY - swipeRef.current.startY);
-      // 상하 스와이프 우선 (작품 이동) - 임계값 상향 (30 -> 60)
-      if (deltaY > deltaX && deltaY > 60) {
+      
+      // 스크롤 우선순위 강제: 상하 스크롤 거리가 100px 이하일 때는 페이지 전환 차단
+      if (deltaY <= 100) {
+        swipeRef.current.isSwiping = false;
+        return;
+      }
+      
+      // 상하 스와이프 우선 (작품 이동) - 임계값 대폭 상향 (60 -> 180)
+      if (deltaY > deltaX && deltaY > 180) {
         swipeRef.current.isSwiping = true;
-      } else if (deltaX > deltaY && deltaX > 60) {
-        // 좌우 스와이프 (Universe 이동) - 임계값 상향
+      } else if (deltaX > deltaY && deltaX > 180) {
+        // 좌우 스와이프 (Universe 이동) - 임계값 대폭 상향
         swipeRef.current.isSwiping = true;
       }
     }
@@ -636,16 +643,16 @@ export default function Home() {
     }
     
     // 관성 스크롤 처리 - 속도가 너무 빠르면 (스크롤 관성) 페이지 전환 차단
-    // 속도 임계값: 2px/ms 이상이면 관성 스크롤로 판단
-    if (swipeRef.current.velocity > 2) {
+    // 속도 임계값: 0.5px/ms 이상이면 관성 스크롤로 판단 (더 엄격하게)
+    if (swipeRef.current.velocity > 0.5) {
       swipeRef.current.isSwiping = false;
       swipeRef.current.isScrollingComments = false;
       swipeRef.current.velocity = 0;
       return;
     }
     
-    // 터치 시간이 너무 짧으면 (100ms 미만) 실수로 판단하고 차단
-    if (touchDuration < 100) {
+    // 터치 시간이 너무 짧으면 (200ms 미만) 실수로 판단하고 차단
+    if (touchDuration < 200) {
       swipeRef.current.isSwiping = false;
       swipeRef.current.isScrollingComments = false;
       swipeRef.current.velocity = 0;
@@ -656,7 +663,16 @@ export default function Home() {
     const endY = e.changedTouches[0].clientY;
     const deltaX = endX - swipeRef.current.startX;
     const deltaY = endY - swipeRef.current.startY;
-    const threshold = 200; // 임계값 2배 상향 (100 -> 200)
+    
+    // 스크롤 우선순위 강제: 상하 스크롤 거리가 100px 이하일 때는 페이지 전환 차단
+    if (Math.abs(deltaY) <= 100) {
+      swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = false;
+      swipeRef.current.velocity = 0;
+      return;
+    }
+    
+    const threshold = 600; // 임계값 3배 상향 (200 -> 600)
 
     // 상하 스와이프 = 작품 이동
     if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > threshold) {
