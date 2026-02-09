@@ -293,47 +293,28 @@ nextjs-portal {
   top: unset !important;
 }
 
-/* 스크롤 스냅 완전 제거 - !important로 강제 고정 (모든 요소에 적용) */
+/* 스크롤 스냅 완전 제거 - 자석 효과 방지 (모든 요소에 강제 적용) */
 *,
 *::before,
-*::after {
-  scroll-snap-type: none !important;
-  scroll-snap-align: none !important;
-  scroll-snap-stop: normal !important;
-  -webkit-scroll-snap-type: none !important;
-  -ms-scroll-snap-type: none !important;
-}
-
-/* 스크롤 컨테이너 스냅 제거 */
+*::after,
+html,
+body,
 div,
-div[class*="overflow"],
-div[class*="scroll"],
 main,
 section,
 article,
 header,
 footer,
 nav,
-aside {
-  scroll-snap-type: none !important;
-  scroll-snap-align: none !important;
-  scroll-snap-stop: normal !important;
-  -webkit-scroll-snap-type: none !important;
-  -ms-scroll-snap-type: none !important;
-}
-
-/* body와 html에도 적용 */
-html,
-body {
-  scroll-snap-type: none !important;
-  scroll-snap-align: none !important;
-  -webkit-scroll-snap-type: none !important;
-  -ms-scroll-snap-type: none !important;
-}
-
-/* 모든 인라인 스타일 오버라이드 */
+aside,
+[class*="overflow"],
+[class*="scroll"],
 [style*="scroll-snap"] {
   scroll-snap-type: none !important;
   scroll-snap-align: none !important;
   scroll-snap-stop: normal !important;
+  -webkit-scroll-snap-type: none !important;
+  -ms-scroll-snap-type: none !important;
+  scroll-margin: 0 !important;
+  scroll-padding: 0 !important;
 }
