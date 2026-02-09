@@ -485,21 +485,86 @@ export default function Home() {
     goToUniverse(currentUniverseIndex + 1);
   }
 
+  // 진짜 바닥 확인 함수 - 댓글 리스트 최하단까지 도달했는지 체크
+  function isAtRealBottom(element: HTMLElement | null, storyIdx: number): boolean {
+    if (!element) return false;
+    
+    // 현재 스토리의 스크롤 컨테이너 찾기 (overflow-y-auto)
+    const storyScrollContainer = element.closest('.overflow-y-auto');
+    if (!storyScrollContainer) return false;
+    
+    const scrollContainer = storyScrollContainer as HTMLElement;
+    const scrollTop = scrollContainer.scrollTop;
+    const scrollHeight = scrollContainer.scrollHeight;
+    const clientHeight = scrollContainer.clientHeight;
+    
+    // 댓글 영역 찾기
+    const commentsSection = scrollContainer.querySelector('[data-comments-section]');
+    if (!commentsSection) {
+      // 댓글이 없으면 본문 끝이 바닥 (입력창까지 포함)
+      const inputArea = scrollContainer.querySelector('[data-input-area]');
+      if (inputArea) {
+        const inputRect = inputArea.getBoundingClientRect();
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const distanceFromBottom = inputRect.bottom - containerRect.bottom;
+        return distanceFromBottom <= 100 && scrollHeight - scrollTop - clientHeight < 100;
+      }
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 20;
+      return isAtBottom;
+    }
+    
+    // 댓글 입력창까지 포함한 전체 높이 확인
+    const commentsInput = commentsSection.querySelector('input[aria-label="댓글 입력"]');
+    if (!commentsInput) {
+      // 입력창이 없으면 댓글 영역 끝이 바닥
+      const commentsRect = commentsSection.getBoundingClientRect();
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const distanceFromBottom = commentsRect.bottom - containerRect.bottom;
+      return distanceFromBottom <= 50 && scrollHeight - scrollTop - clientHeight < 50;
+    }
+    
+    // 댓글 입력창의 실제 바닥 위치 확인
+    const inputRect = commentsInput.getBoundingClientRect();
+    const containerRect = scrollContainer.getBoundingClientRect();
+    
+    // 스크롤 위치가 댓글 입력창 아래 100px 이내에 있으면 진짜 바닥
+    const distanceFromBottom = inputRect.bottom - containerRect.bottom;
+    const scrollDistanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const isAtRealBottom = distanceFromBottom <= 100 && scrollDistanceFromBottom < 100;
+    
+    return isAtRealBottom;
+  }
+
   // 댓글 영역 스크롤 상태 확인 함수
   function isCommentsScrolling(element: HTMLElement | null): boolean {
     if (!element) return false;
     
-    // 댓글 영역인지 확인 (data-comments-section 속성 또는 클래스로 판단)
+    // 댓글 영역인지 확인 (data-comments-section 속성으로 판단)
     const commentsSection = element.closest('[data-comments-section]');
     if (!commentsSection) return false;
     
-    const scrollContainer = commentsSection as HTMLElement;
+    // 본문 스크롤 컨테이너 확인 (각 스토리 카드 내부의 overflow-y-auto 컨테이너)
+    const storyScrollContainer = element.closest('.overflow-y-auto');
+    if (!storyScrollContainer) return false;
+    
+    const scrollContainer = storyScrollContainer as HTMLElement;
     const scrollTop = scrollContainer.scrollTop;
     const scrollHeight = scrollContainer.scrollHeight;
     const clientHeight = scrollContainer.clientHeight;
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 10; // 10px 여유
     
-    // 댓글 영역 내부에서 스크롤 중이고, 바닥에 도달하지 않았으면 true
+    // 댓글 영역의 위치 확인
+    const commentsRect = commentsSection.getBoundingClientRect();
+    const containerRect = scrollContainer.getBoundingClientRect();
+    
+    // 댓글 영역이 화면에 보이는지 확인
+    const isCommentsVisible = commentsRect.top < containerRect.bottom && commentsRect.bottom > containerRect.top;
+    
+    if (!isCommentsVisible) return false;
+    
+    // 스크롤이 바닥에 도달했는지 확인 (20px 여유)
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 20;
+    
+    // 댓글 영역이 보이는 상태이고, 스크롤이 바닥에 도달하지 않았으면 true
     return !isAtBottom;
   }
 
@@ -535,6 +600,19 @@ export default function Home() {
       return;
     }
     
+    // 현재 스토리 인덱스 찾기
+    const storyElement = target.closest('[data-story-index]');
+    const storyIdx = storyElement ? parseInt(storyElement.getAttribute('data-story-index') || '0') : currentStoryIndex;
+    
+    // 진짜 바닥에 도달했는지 확인
+    const atRealBottom = isAtRealBottom(target, storyIdx);
+    if (!atRealBottom) {
+      // 진짜 바닥에 도달하지 않았으면 스와이프 완전 차단
+      swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = true;
+      return;
+    }
+    
     // 댓글 영역 스크롤 중인지 확인
     swipeRef.current.isScrollingComments = isCommentsScrolling(target);
     
@@ -558,6 +636,18 @@ export default function Home() {
     // 보호 영역 터치 시 스와이프 차단
     if (isProtectedArea(target)) {
       swipeRef.current.isSwiping = false;
+      return;
+    }
+    
+    // 현재 스토리 인덱스 찾기
+    const storyElement = target.closest('[data-story-index]');
+    const storyIdx = storyElement ? parseInt(storyElement.getAttribute('data-story-index') || '0') : currentStoryIndex;
+    
+    // 진짜 바닥에 도달했는지 확인 - 도달하지 않았으면 완전 차단
+    const atRealBottom = isAtRealBottom(target, storyIdx);
+    if (!atRealBottom) {
+      swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = true;
       return;
     }
     
@@ -620,6 +710,19 @@ export default function Home() {
     
     // 보호 영역 터치 시 스와이프 차단
     if (isProtectedArea(target)) {
+      swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = false;
+      swipeRef.current.velocity = 0;
+      return;
+    }
+    
+    // 현재 스토리 인덱스 찾기
+    const storyElement = target.closest('[data-story-index]');
+    const storyIdx = storyElement ? parseInt(storyElement.getAttribute('data-story-index') || '0') : currentStoryIndex;
+    
+    // 진짜 바닥에 도달했는지 최종 확인 - 도달하지 않았으면 완전 차단
+    const atRealBottom = isAtRealBottom(target, storyIdx);
+    if (!atRealBottom) {
       swipeRef.current.isSwiping = false;
       swipeRef.current.isScrollingComments = false;
       swipeRef.current.velocity = 0;
@@ -1131,6 +1234,7 @@ export default function Home() {
               return (
                 <div
                   key={`story-${story.id}-${storyIdx}`}
+                  data-story-index={storyIdx}
                   className="w-full relative"
                   style={{
                     minHeight: "100vh", // 화면 꽉 차게
