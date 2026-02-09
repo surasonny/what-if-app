@@ -417,12 +417,20 @@ export default function Home() {
     isSwiping: boolean;
     scrollContainer: HTMLElement | null;
     isScrollingComments: boolean;
+    startTime: number;
+    lastMoveTime: number;
+    lastMoveY: number;
+    velocity: number;
   }>({
     startX: 0,
     startY: 0,
     isSwiping: false,
     scrollContainer: null,
     isScrollingComments: false,
+    startTime: 0,
+    lastMoveTime: 0,
+    lastMoveY: 0,
+    velocity: 0,
   });
 
   // 작품(Story) 전환 함수 - 상하 스와이프
@@ -515,6 +523,7 @@ export default function Home() {
     if (isTransitioning) return;
     
     const target = e.target as HTMLElement;
+    const now = Date.now();
     
     // 보호 영역 터치 시 스와이프 차단
     if (isProtectedArea(target)) {
@@ -528,13 +537,19 @@ export default function Home() {
     swipeRef.current.startX = e.touches[0].clientX;
     swipeRef.current.startY = e.touches[0].clientY;
     swipeRef.current.isSwiping = false;
-    swipeRef.current.scrollContainer = target.closest('[data-comments-section]') as HTMLElement;
+    swipeRef.current.scrollContainer = target.closest('.overflow-y-auto') as HTMLElement;
+    swipeRef.current.startTime = now;
+    swipeRef.current.lastMoveTime = now;
+    swipeRef.current.lastMoveY = e.touches[0].clientY;
+    swipeRef.current.velocity = 0;
   }
 
   function handleTouchMove(e: TouchEvent) {
     if (isTransitioning) return;
     
     const target = e.target as HTMLElement;
+    const now = Date.now();
+    const currentY = e.touches[0].clientY;
     
     // 보호 영역 터치 시 스와이프 차단
     if (isProtectedArea(target)) {
@@ -542,32 +557,38 @@ export default function Home() {
       return;
     }
     
-    // 댓글 영역 스크롤 중이면 스와이프 차단
+    // 댓글 영역 스크롤 중이면 스와이프 완전히 차단
     if (swipeRef.current.isScrollingComments) {
+      swipeRef.current.isSwiping = false;
+      return;
+    }
+    
+    // 댓글 영역 내부에서 손가락이 움직이고 있는지 확인
+    const commentsSection = target.closest('[data-comments-section]');
+    if (commentsSection) {
       const scrollContainer = swipeRef.current.scrollContainer;
       if (scrollContainer && isCommentsScrolling(scrollContainer)) {
         swipeRef.current.isSwiping = false;
         return;
       }
-      // 스크롤이 바닥에 도달했는지 확인
-      const scrollTop = scrollContainer?.scrollTop || 0;
-      const scrollHeight = scrollContainer?.scrollHeight || 0;
-      const clientHeight = scrollContainer?.clientHeight || 0;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
-      
-      if (!isAtBottom) {
-        swipeRef.current.isSwiping = false;
-        return;
-      }
     }
+    
+    // 속도 계산 (관성 스크롤 감지용)
+    const timeDelta = now - swipeRef.current.lastMoveTime;
+    if (timeDelta > 0) {
+      const moveDelta = Math.abs(currentY - swipeRef.current.lastMoveY);
+      swipeRef.current.velocity = moveDelta / timeDelta; // px/ms
+    }
+    swipeRef.current.lastMoveTime = now;
+    swipeRef.current.lastMoveY = currentY;
     
     if (!swipeRef.current.isSwiping) {
       const deltaX = Math.abs(e.touches[0].clientX - swipeRef.current.startX);
       const deltaY = Math.abs(e.touches[0].clientY - swipeRef.current.startY);
-      // 상하 스와이프 우선 (작품 이동) - 임계값 상향 (10 -> 30)
-      if (deltaY > deltaX && deltaY > 30) {
+      // 상하 스와이프 우선 (작품 이동) - 임계값 상향 (30 -> 60)
+      if (deltaY > deltaX && deltaY > 60) {
         swipeRef.current.isSwiping = true;
-      } else if (deltaX > deltaY && deltaX > 30) {
+      } else if (deltaX > deltaY && deltaX > 60) {
         // 좌우 스와이프 (Universe 이동) - 임계값 상향
         swipeRef.current.isSwiping = true;
       }
@@ -578,44 +599,64 @@ export default function Home() {
     if (isTransitioning || !swipeRef.current.isSwiping) {
       swipeRef.current.isSwiping = false;
       swipeRef.current.isScrollingComments = false;
+      swipeRef.current.velocity = 0;
       return;
     }
     
     const target = e.target as HTMLElement;
+    const now = Date.now();
+    const touchDuration = now - swipeRef.current.startTime;
     
     // 보호 영역 터치 시 스와이프 차단
     if (isProtectedArea(target)) {
       swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = false;
+      swipeRef.current.velocity = 0;
       return;
     }
     
-    // 댓글 영역 스크롤 중이면 스와이프 차단
+    // 댓글 영역 스크롤 중이면 스와이프 완전히 차단
     if (swipeRef.current.isScrollingComments) {
+      swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = false;
+      swipeRef.current.velocity = 0;
+      return;
+    }
+    
+    // 댓글 영역 내부에서 손가락이 움직이고 있었는지 확인
+    const commentsSection = target.closest('[data-comments-section]');
+    if (commentsSection) {
       const scrollContainer = swipeRef.current.scrollContainer;
       if (scrollContainer && isCommentsScrolling(scrollContainer)) {
         swipeRef.current.isSwiping = false;
         swipeRef.current.isScrollingComments = false;
+        swipeRef.current.velocity = 0;
         return;
       }
-      
-      // 댓글 영역 바닥에 도달했는지 최종 확인
-      const scrollTop = scrollContainer?.scrollTop || 0;
-      const scrollHeight = scrollContainer?.scrollHeight || 0;
-      const clientHeight = scrollContainer?.clientHeight || 0;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
-      
-      if (!isAtBottom) {
-        swipeRef.current.isSwiping = false;
-        swipeRef.current.isScrollingComments = false;
-        return;
-      }
+    }
+    
+    // 관성 스크롤 처리 - 속도가 너무 빠르면 (스크롤 관성) 페이지 전환 차단
+    // 속도 임계값: 2px/ms 이상이면 관성 스크롤로 판단
+    if (swipeRef.current.velocity > 2) {
+      swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = false;
+      swipeRef.current.velocity = 0;
+      return;
+    }
+    
+    // 터치 시간이 너무 짧으면 (100ms 미만) 실수로 판단하고 차단
+    if (touchDuration < 100) {
+      swipeRef.current.isSwiping = false;
+      swipeRef.current.isScrollingComments = false;
+      swipeRef.current.velocity = 0;
+      return;
     }
     
     const endX = e.changedTouches[0].clientX;
     const endY = e.changedTouches[0].clientY;
     const deltaX = endX - swipeRef.current.startX;
     const deltaY = endY - swipeRef.current.startY;
-    const threshold = 100; // 임계값 상향 (50 -> 100)
+    const threshold = 200; // 임계값 2배 상향 (100 -> 200)
 
     // 상하 스와이프 = 작품 이동
     if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > threshold) {
@@ -633,8 +674,10 @@ export default function Home() {
         goToNextUniverse();
       }
     }
+    
     swipeRef.current.isSwiping = false;
     swipeRef.current.isScrollingComments = false;
+    swipeRef.current.velocity = 0;
   }
 
   async function handleRevolution() {
