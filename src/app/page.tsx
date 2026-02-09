@@ -1301,7 +1301,7 @@ export default function Home() {
                 <div
                   key={`story-${story.id}-${storyIdx}`}
                   data-story-index={storyIdx}
-                  className="w-full relative min-h-[200vh]"
+                  className="w-full relative min-h-[150vh]"
                 >
                   {/* 카드 컨테이너 - 일반 웹사이트처럼 연속 배치 */}
                   <div
@@ -1454,8 +1454,10 @@ export default function Home() {
                                   const snapshotKey = `${story.id}-${currentUniverseForStory.id}`;
                                   const isUnlocked = unlockedSnapshots.has(snapshotKey);
                                   const snapshotCost = storyIdx === 0 ? 50 : storyIdx === 1 ? 100 : 300;
+                                  // 2·3번 스토리는 잠금/유료 버튼 없이 이미지만 표시
+                                  const showLock = storyIdx === 0 && !isUnlocked;
                                   
-                                  if (!isUnlocked) {
+                                  if (showLock) {
                                     return (
                                       <>
                                         <img
@@ -1584,13 +1586,12 @@ export default function Home() {
                             </div>
                           )}
                           
-                          {/* 스냅샷 포인트 버튼 - 입력창 바로 위, 왼쪽 정렬 */}
-                          {isStoryActive && currentUniverseForStory && (() => {
+                          {/* 스냅샷 포인트 버튼 - 첫 번째 스토리(태오 vs 도진)에만 표시 */}
+                          {storyIdx === 0 && isStoryActive && currentUniverseForStory && (() => {
                             const snapshotKey = `${story.id}-${currentUniverseForStory.id}`;
                             const isUnlocked = unlockedSnapshots.has(snapshotKey);
-                            const snapshotCost = storyIdx === 0 ? 50 : storyIdx === 1 ? 100 : 300;
+                            const snapshotCost = 50;
                             
-                            // 시연을 위해 항상 표시 (잠금 해제 여부와 관계없이)
                             return (
                               <div className="relative z-50 mb-3" data-snapshot-button>
                                 <button
@@ -1714,11 +1715,11 @@ export default function Home() {
                         </div>
                       )}
                       
-                      {/* 댓글 영역 - 본문 바로 아래에 위치, 스크롤하면 바로 보임 */}
+                      {/* 댓글 영역 - 본문과 겹치지 않도록 아래쪽 마진 확보 */}
                       {story.comments && (
                         <div 
                           data-comments-section
-                          className="mt-2 pt-3 border-t border-white/10 relative bg-gray-900 rounded-t-2xl -mx-5 sm:-mx-6 px-5 sm:px-6 pb-6"
+                          className="mt-20 pt-6 border-t border-white/10 relative bg-gray-900 rounded-t-2xl -mx-5 sm:-mx-6 px-5 sm:px-6 pb-6"
                           style={{ 
                             zIndex: 50,
                           }}
