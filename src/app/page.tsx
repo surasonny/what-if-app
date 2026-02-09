@@ -1091,6 +1091,7 @@ export default function Home() {
               msOverflowStyle: "none",
               WebkitOverflowScrolling: "touch",
               scrollSnapType: "none", // 스크롤 스냅 완전히 제거
+              scrollSnapAlign: "none", // 스크롤 스냅 정렬 제거
               height: "calc(100vh - 80px)", // 헤더 높이 제외
               overflowY: "scroll",
             }}
@@ -1151,6 +1152,8 @@ export default function Home() {
                       style={{ 
                         scrollbarWidth: "thin", 
                         scrollbarColor: "rgba(255,255,255,0.1) transparent",
+                        scrollSnapType: "none", // 스크롤 스냅 완전히 제거
+                        scrollSnapAlign: "none", // 스크롤 스냅 정렬 제거
                         minHeight: "100vh", // 화면 꽉 차게
                         maxHeight: "100vh", // 최대 높이 제한
                       }}
@@ -1554,11 +1557,6 @@ export default function Home() {
                         </div>
                       )}
                       
-                      {/* 입력창 아래 충분한 여백 - 두 번째 스토리로 넘어가기 전 확보 */}
-                      {isStoryActive && currentUniverseForStory && (
-                        <div className="pb-20" />
-                      )}
-                      
                       {/* 댓글 영역 - 본문 바로 아래에 위치, 스크롤하면 바로 보임 */}
                       {story.comments && (
                         <div 
@@ -1768,7 +1766,18 @@ export default function Home() {
                             </div>
                           </div>
                         )}
+                        
+                        {/* 첫 번째 스토리 섹션 하단 여백 - 충분히 내린 뒤에만 다음 스토리 보이게 */}
+                        {storyIdx === 0 && (
+                          <div style={{ paddingBottom: "200px", minHeight: "200px" }} />
+                        )}
                       </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
                     </div>
                   </div>
                 </div>
