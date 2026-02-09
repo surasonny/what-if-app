@@ -12,13 +12,16 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: false,
   },
-  // 빌드 에러 무시 (배포 우선)
+  // 빌드 에러 강제 무시 (Vercel 배포 우선)
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // TypeScript 빌드 에러 완전 무시
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // ESLint 빌드 중 에러 완전 무시
   },
+  // 추가 빌드 안정성 설정
+  swcMinify: true,
+  reactStrictMode: false, // 빌드 안정성을 위해 비활성화
 };
 
 export default nextConfig;

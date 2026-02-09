@@ -1152,8 +1152,8 @@ export default function Home() {
                       style={{ 
                         scrollbarWidth: "thin", 
                         scrollbarColor: "rgba(255,255,255,0.1) transparent",
-                        scrollSnapType: "none", // 스크롤 스냅 완전히 제거
-                        scrollSnapAlign: "none", // 스크롤 스냅 정렬 제거
+                        scrollSnapType: "none" as const, // 스크롤 스냅 완전히 제거
+                        scrollSnapAlign: "none" as const, // 스크롤 스냅 정렬 제거
                         minHeight: "100vh", // 화면 꽉 차게
                         maxHeight: "100vh", // 최대 높이 제한
                       }}
@@ -1769,7 +1769,7 @@ export default function Home() {
                         
                         {/* 첫 번째 스토리 섹션 하단 여백 - 충분히 내린 뒤에만 다음 스토리 보이게 */}
                         {storyIdx === 0 && (
-                          <div style={{ paddingBottom: "200px", minHeight: "200px" }} />
+                          <div className="pb-[300px]" style={{ minHeight: "300px" }} />
                         )}
                       </div>
                     </div>
