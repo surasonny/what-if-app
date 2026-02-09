@@ -1056,7 +1056,7 @@ export default function Home() {
                             )}
                             <div 
                               id={storyIdx === currentStoryIndex ? "snapshot-card" : undefined}
-                              className="relative w-[75%] max-w-[280px] bg-white p-3 shadow-[0_16px_48px_rgba(0,0,0,0.6),0_4px_12px_rgba(0,0,0,0.3)] rounded-sm transition-all duration-500 ease-out transform rotate-[-2deg]"
+                              className="relative w-[70%] max-w-[266px] bg-white p-3 shadow-[0_16px_48px_rgba(0,0,0,0.6),0_4px_12px_rgba(0,0,0,0.3)] rounded-sm transition-all duration-500 ease-out transform rotate-[-2deg]"
                             >
                               {/* 흰색 테두리 (폴라로이드 프레임) */}
                               <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-900 border-2 border-white">
@@ -1119,13 +1119,6 @@ export default function Home() {
                                   );
                                 })()}
                               </div>
-                              {/* Universe Snapshot 문구 */}
-                              <div className="mt-2 px-2 pb-1 text-center relative">
-                                <p className="text-[9px] font-bold text-zinc-800 tracking-wider uppercase">
-                                  Universe Snapshot
-                                </p>
-                                <div className="mt-1 h-[1.5px] bg-gradient-to-r from-transparent via-zinc-400 to-transparent" />
-                              </div>
                             </div>
                           </div>
                         ) : null;
@@ -1156,7 +1149,7 @@ export default function Home() {
                       
                       {/* 입력창 및 버튼 (활성 카드에만 표시) */}
                       {isStoryActive && currentUniverseForStory && (
-                        <div className="mt-8 pt-6 border-t border-white/10 space-y-3">
+                        <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
                           <p className="text-center text-[13px] text-zinc-500">
                             {story.theme === "dark" 
                               ? "정사(正史)를 뒤엎고 천마의 시대를 여시겠습니까?"
@@ -1209,18 +1202,21 @@ export default function Home() {
                             
                             // 시연을 위해 항상 표시 (잠금 해제 여부와 관계없이)
                             return (
-                              <div className="relative z-50 mb-2">
+                              <div className="relative z-50 mb-3">
                                 <button
                                   type="button"
                                   onClick={() => {
                                     if (!isUnlocked) {
                                       handleUnlockSnapshot(story.id, currentUniverseForStory.id, snapshotCost);
+                                    } else {
+                                      // 잠금 해제된 경우 스냅샷 생성 실행
+                                      handleSnapshot();
                                     }
                                   }}
                                   disabled={!isUnlocked && userPoints < snapshotCost}
-                                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/60 border border-white/10 text-white transition-all ${
+                                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/80 border border-white/20 text-white transition-all shadow-[0_2px_8px_rgba(255,255,255,0.1)] ring-1 ring-cyan-400/30 ${
                                     isUnlocked || userPoints >= snapshotCost
-                                      ? "hover:bg-black/80 hover:border-white/20 active:scale-95 cursor-pointer"
+                                      ? "hover:bg-black/90 hover:border-white/30 hover:shadow-[0_4px_12px_rgba(255,255,255,0.15)] hover:ring-cyan-400/50 active:scale-95 cursor-pointer"
                                       : "opacity-50 cursor-not-allowed"
                                   }`}
                                 >
@@ -1229,43 +1225,41 @@ export default function Home() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                   </svg>
                                   <span className="text-sm font-medium">
-                                    스냅샷 15피스
+                                    📸 스냅샷 15피스
                                   </span>
                                 </button>
                               </div>
                             );
                           })()}
                           
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 relative">
                             <input
                               type="text"
                               value={userInput}
                               onChange={(e) => setUserInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey && userInput.trim() && !loading) {
+                                  e.preventDefault();
+                                  handleRevolution();
+                                }
+                              }}
                               placeholder="한 줄로 당신의 선택을 적어보세요"
                               maxLength={120}
                               disabled={loading}
-                              className="flex-1 min-h-[48px] rounded-2xl border border-white/[0.1] bg-white/[0.04] px-4 py-3 text-[16px] text-zinc-200 placeholder:text-zinc-500 focus:border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
+                              className="flex-1 min-h-[48px] rounded-2xl border border-white/[0.1] bg-white/[0.04] px-4 py-3 pr-14 text-[16px] text-zinc-200 placeholder:text-zinc-500 focus:border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
                               aria-label="운명을 뒤엎을 한 줄 입력"
                             />
                             <button
                               type="button"
-                              onClick={handleSnapshot}
-                              disabled={isCapturing || loading}
-                              className="flex min-h-[48px] min-w-[48px] items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.04] text-zinc-400 transition-all hover:bg-white/[0.08] hover:text-zinc-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-                              aria-label={isCapturing ? "이미지 생성 중" : "스냅샷 촬영"}
-                              title="스냅샷"
+                              onClick={handleRevolution}
+                              disabled={!userInput.trim() || loading}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.04] text-zinc-400 transition-all hover:bg-white/[0.08] hover:text-zinc-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                              aria-label="전송"
+                              title="전송"
                             >
-                              {isCapturing ? (
-                                <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                </svg>
-                              ) : (
-                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                              )}
+                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                              </svg>
                             </button>
                           </div>
                           <button
