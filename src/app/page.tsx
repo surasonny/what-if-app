@@ -1068,7 +1068,7 @@ export default function Home() {
         </div>
       )}
       
-    <div className="h-screen overflow-hidden bg-[#050508]">
+    <div className="min-h-screen bg-[#050508]">
       <div
         className="pointer-events-none fixed inset-0 bg-gradient-to-b from-violet-950/15 via-transparent to-cyan-950/5"
         aria-hidden
@@ -1118,7 +1118,7 @@ export default function Home() {
           ))}
         </div>
 
-        <main className="relative flex flex-col" style={{ height: "100vh", overflow: "hidden" }}>
+        <main className="relative flex flex-col" style={{ minHeight: "100vh" }}>
           <header className="fixed top-0 left-0 right-0 z-40 px-4 pt-[env(safe-area-inset-top)] pt-5 pb-2 bg-[#050508]/80 backdrop-blur-md">
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1" />
@@ -1280,9 +1280,10 @@ export default function Home() {
               msOverflowStyle: "auto",
               WebkitOverflowScrolling: "touch",
               height: "calc(100vh - 80px)", // 헤더 높이 제외
-              overflowY: "auto", // 일반 스크롤
+              overflowY: "scroll", // 일반 스크롤 (auto 대신 scroll로 명시)
               scrollSnapType: "none", // 스크롤 자석 효과 완전 제거
               scrollSnapAlign: "none", // 스크롤 자석 효과 완전 제거
+              scrollBehavior: "auto", // 부드러운 스크롤 비활성화
             } as React.CSSProperties}
           >
 

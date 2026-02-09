@@ -304,6 +304,7 @@ nextjs-portal {
   -ms-scroll-snap-type: none !important;
   scroll-margin: 0 !important;
   scroll-padding: 0 !important;
+  scroll-behavior: auto !important;
 }
 
 html,
@@ -313,6 +314,8 @@ body {
   scroll-snap-stop: normal !important;
   -webkit-scroll-snap-type: none !important;
   -ms-scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
+  overflow-y: scroll !important;
 }
 
 div,
@@ -328,18 +331,22 @@ aside {
   scroll-snap-stop: normal !important;
   -webkit-scroll-snap-type: none !important;
   -ms-scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
 }
 
 [class*="overflow"],
-[class*="scroll"] {
+[class*="scroll"],
+[class*="snap"] {
   scroll-snap-type: none !important;
   scroll-snap-align: none !important;
   scroll-snap-stop: normal !important;
   -webkit-scroll-snap-type: none !important;
   -ms-scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
 }
 
-[style*="scroll-snap"] {
+[style*="scroll-snap"],
+[style*="snap"] {
   scroll-snap-type: none !important;
   scroll-snap-align: none !important;
   scroll-snap-stop: normal !important;
