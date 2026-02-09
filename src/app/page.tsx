@@ -352,6 +352,22 @@ export default function Home() {
   });
   const [heartAnimations, setHeartAnimations] = useState<{ [key: string]: boolean }>({});
   
+  // 포인트 시스템 (수익 모델)
+  const [userPoints, setUserPoints] = useState(1200); // 유저 보유 포인트 (하드코딩)
+  const [unlockedSnapshots, setUnlockedSnapshots] = useState<Set<string>>(new Set([
+    // 첫 번째 작품의 첫 번째 Universe는 기본으로 열려있음
+    "story-1-universe-0",
+  ]));
+  
+  // 스냅샷 잠금 해제 핸들러
+  const handleUnlockSnapshot = (storyId: string, universeId: string, cost: number) => {
+    const snapshotKey = `${storyId}-${universeId}`;
+    if (userPoints >= cost && !unlockedSnapshots.has(snapshotKey)) {
+      setUserPoints((prev) => prev - cost);
+      setUnlockedSnapshots((prev) => new Set([...prev, snapshotKey]));
+    }
+  };
+  
   // 좋아요 클릭 핸들러
   const handleLikeClick = (storyId: string) => {
     setStoryLikes((prev) => ({
@@ -744,7 +760,14 @@ export default function Home() {
                 </h1>
                 <p className="mt-0.5 text-[11px] text-zinc-600">{currentStory?.title || ""}</p>
               </div>
-              <div className="flex-1 flex justify-end">
+              <div className="flex-1 flex justify-end items-center gap-3">
+                {/* 잔여 포인트 표시 */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-yellow-900/30 via-yellow-800/20 to-yellow-900/30 border border-yellow-500/40 backdrop-blur-sm">
+                  <span className="text-base">💎</span>
+                  <span className="text-[12px] font-bold text-[#FFD700]">
+                    {userPoints.toLocaleString()}P
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => router.push("/library")}
@@ -1037,29 +1060,92 @@ export default function Home() {
                             >
                               {/* 흰색 테두리 (폴라로이드 프레임) */}
                               <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-900 border-2 border-white">
-                                <img
-                                  src={displayImageUrl}
-                                  alt={`${currentUniverseForStory.scene.heading || "장면"} 삽화`}
-                                  className="h-full w-full object-cover"
-                                  loading="lazy"
-                                  onError={() => {
-                                    try {
-                                      handleImageError(currentUniverseForStory.id);
-                                      if (showSnapshot) {
-                                        setShowSnapshot(false);
-                                      }
-                                    } catch (err) {
-                                      console.error("[이미지 에러]", err);
-                                    }
-                                  }}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/15 pointer-events-none" />
+                                {(() => {
+                                  const snapshotKey = `${story.id}-${currentUniverseForStory.id}`;
+                                  const isUnlocked = unlockedSnapshots.has(snapshotKey);
+                                  const snapshotCost = storyIdx === 0 ? 50 : storyIdx === 1 ? 100 : 300;
+                                  
+                                  if (!isUnlocked) {
+                                    return (
+                                      <>
+                                        <img
+                                          src={displayImageUrl}
+                                          alt={`${currentUniverseForStory.scene.heading || "장면"} 삽화`}
+                                          className="h-full w-full object-cover blur-md"
+                                          loading="lazy"
+                                        />
+                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleUnlockSnapshot(story.id, currentUniverseForStory.id, snapshotCost)}
+                                            disabled={userPoints < snapshotCost}
+                                            className={`px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 border-2 border-yellow-300 text-yellow-900 text-sm font-bold shadow-[0_4px_20px_rgba(255,215,0,0.4)] transition-all ${
+                                              userPoints >= snapshotCost
+                                                ? "hover:scale-105 active:scale-95 cursor-pointer"
+                                                : "opacity-50 cursor-not-allowed"
+                                            }`}
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-lg">💎</span>
+                                              <span>포인트로 스냅샷 확인하기</span>
+                                              <span className="text-xs">({snapshotCost}P)</span>
+                                            </div>
+                                          </button>
+                                        </div>
+                                      </>
+                                    );
+                                  }
+                                  
+                                  return (
+                                    <>
+                                      <img
+                                        src={displayImageUrl}
+                                        alt={`${currentUniverseForStory.scene.heading || "장면"} 삽화`}
+                                        className="h-full w-full object-cover"
+                                        loading="lazy"
+                                        onError={() => {
+                                          try {
+                                            handleImageError(currentUniverseForStory.id);
+                                            if (showSnapshot) {
+                                              setShowSnapshot(false);
+                                            }
+                                          } catch (err) {
+                                            console.error("[이미지 에러]", err);
+                                          }
+                                        }}
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/15 pointer-events-none" />
+                                    </>
+                                  );
+                                })()}
                               </div>
-                              {/* Universe Snapshot 문구 */}
-                              <div className="mt-2 px-2 pb-1 text-center">
-                                <p className="text-[9px] font-bold text-zinc-800 tracking-wider uppercase">
-                                  Universe Snapshot
-                                </p>
+                              {/* Universe Snapshot 문구 및 포인트 배지 */}
+                              <div className="mt-2 px-2 pb-1 text-center relative">
+                                <div className="flex items-center justify-center gap-2 mb-1">
+                                  <p className="text-[9px] font-bold text-zinc-800 tracking-wider uppercase">
+                                    Universe Snapshot
+                                  </p>
+                                  {(() => {
+                                    const snapshotKey = `${story.id}-${currentUniverseForStory.id}`;
+                                    const isUnlocked = unlockedSnapshots.has(snapshotKey);
+                                    const snapshotCost = storyIdx === 0 ? 50 : storyIdx === 1 ? 100 : 300;
+                                    
+                                    if (!isUnlocked) {
+                                      return (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/90 via-yellow-500/90 to-yellow-400/90 border border-yellow-300/50 text-[8px] font-bold text-yellow-900 shadow-lg">
+                                          <span>💎</span>
+                                          {snapshotCost}P 소모
+                                        </span>
+                                      );
+                                    }
+                                    return (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 via-yellow-500/20 to-yellow-400/20 border border-yellow-400/30 text-[8px] font-bold text-[#FFD700]">
+                                        <span>💎</span>
+                                        50 Point
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
                                 <div className="mt-1 h-[1.5px] bg-gradient-to-r from-transparent via-zinc-400 to-transparent" />
                               </div>
                             </div>
