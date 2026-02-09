@@ -1119,33 +1119,11 @@ export default function Home() {
                                   );
                                 })()}
                               </div>
-                              {/* Universe Snapshot 문구 및 포인트 배지 */}
+                              {/* Universe Snapshot 문구 */}
                               <div className="mt-2 px-2 pb-1 text-center relative">
-                                <div className="flex items-center justify-center gap-2 mb-1">
-                                  <p className="text-[9px] font-bold text-zinc-800 tracking-wider uppercase">
-                                    Universe Snapshot
-                                  </p>
-                                  {(() => {
-                                    const snapshotKey = `${story.id}-${currentUniverseForStory.id}`;
-                                    const isUnlocked = unlockedSnapshots.has(snapshotKey);
-                                    const snapshotCost = storyIdx === 0 ? 50 : storyIdx === 1 ? 100 : 300;
-                                    
-                                    if (!isUnlocked) {
-                                      return (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/90 via-yellow-500/90 to-yellow-400/90 border border-yellow-300/50 text-[8px] font-bold text-yellow-900 shadow-lg">
-                                          <span>💎</span>
-                                          {snapshotCost}P 소모
-                                        </span>
-                                      );
-                                    }
-                                    return (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 via-yellow-500/20 to-yellow-400/20 border border-yellow-400/30 text-[8px] font-bold text-[#FFD700]">
-                                        <span>💎</span>
-                                        50 Point
-                                      </span>
-                                    );
-                                  })()}
-                                </div>
+                                <p className="text-[9px] font-bold text-zinc-800 tracking-wider uppercase">
+                                  Universe Snapshot
+                                </p>
                                 <div className="mt-1 h-[1.5px] bg-gradient-to-r from-transparent via-zinc-400 to-transparent" />
                               </div>
                             </div>
@@ -1175,6 +1153,39 @@ export default function Home() {
                             : null}
                         </div>
                       )}
+                      
+                      {/* 스냅샷 포인트 버튼 - 본문 끝나고 채팅 입력창 위 */}
+                      {isStoryActive && currentUniverseForStory && (() => {
+                        const snapshotKey = `${story.id}-${currentUniverseForStory.id}`;
+                        const isUnlocked = unlockedSnapshots.has(snapshotKey);
+                        const snapshotCost = storyIdx === 0 ? 50 : storyIdx === 1 ? 100 : 300;
+                        
+                        if (!isUnlocked) {
+                          return (
+                            <div className="mt-6 mb-4">
+                              <button
+                                type="button"
+                                onClick={() => handleUnlockSnapshot(story.id, currentUniverseForStory.id, snapshotCost)}
+                                disabled={userPoints < snapshotCost}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/60 border border-white/10 text-white transition-all ${
+                                  userPoints >= snapshotCost
+                                    ? "hover:bg-black/80 hover:border-white/20 active:scale-95 cursor-pointer"
+                                    : "opacity-50 cursor-not-allowed"
+                                }`}
+                              >
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="text-sm font-medium">
+                                  스냅샷 {snapshotCost}포인트
+                                </span>
+                              </button>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                       
                       {/* 입력창 및 버튼 (활성 카드에만 표시) */}
                       {isStoryActive && currentUniverseForStory && (
