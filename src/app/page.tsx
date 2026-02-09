@@ -433,7 +433,7 @@ export default function Home() {
     velocity: 0,
   });
 
-  // 작품(Story) 전환 함수 - 상하 스와이프
+  // 작품(Story) 전환 함수 - 화살표 버튼으로 이동 (스크롤 이동)
   function goToStory(index: number) {
     if (isTransitioning || index < 0 || index >= stories.length) return;
     if (index === currentStoryIndex) return;
@@ -442,6 +442,12 @@ export default function Home() {
     setShowSnapshot(false);
     setIsSaved(false);
     setFadeKey((k) => k + 1);
+    
+    // 스크롤 이동으로 변경
+    const storyElement = document.querySelector(`[data-story-index="${index}"]`);
+    if (storyElement && scrollContainerRef.current) {
+      storyElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     
     setTimeout(() => {
       setCurrentStoryIndex(index);
@@ -588,7 +594,9 @@ export default function Home() {
     return false;
   }
 
-  // 터치 이벤트 핸들러 - 상하 스와이프(작품), 좌우 스와이프(Universe)
+  // 터치 이벤트 핸들러 - 스와이프 기능 완전 제거 (주석 처리)
+  // 일반 스크롤 방식으로 변경되어 더 이상 사용하지 않음
+  /*
   function handleTouchStart(e: TouchEvent) {
     if (isTransitioning) return;
     
@@ -822,6 +830,7 @@ export default function Home() {
     swipeRef.current.isScrollingComments = false;
     swipeRef.current.velocity = 0;
   }
+  */
 
   async function handleRevolution() {
     const trimmed = userInput.trim();
@@ -1150,6 +1159,63 @@ export default function Home() {
                 </button>
               </div>
             </div>
+            {/* 작품(Story) 네비게이션 - 좌우 화살표로 작품 이동 */}
+            <div className="mt-2 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={goToPrevStory}
+                disabled={currentStoryIndex === 0 || isTransitioning}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition-all active:scale-95 hover:bg-white/10 hover:text-zinc-300 disabled:opacity-30 disabled:pointer-events-none disabled:cursor-not-allowed"
+                aria-label="이전 작품"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <span className="text-xs font-medium text-zinc-400 min-w-[120px] text-center">
+                {currentStory ? (
+                  <>
+                    <span className="text-violet-400">&lt;{currentStory.title}&gt;</span>
+                    <span className="text-zinc-600 mx-1">·</span>
+                    <span className="text-zinc-500">작품 {currentStoryIndex + 1}/{stories.length}</span>
+                  </>
+                ) : null}
+              </span>
+              <button
+                type="button"
+                onClick={goToNextStory}
+                disabled={
+                  currentStoryIndex === stories.length - 1 || isTransitioning
+                }
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition-all active:scale-95 hover:bg-white/10 hover:text-zinc-300 disabled:opacity-30 disabled:pointer-events-none disabled:cursor-not-allowed"
+                aria-label="다음 작품"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+            
             {/* Universe 네비게이션 - 좌우 화살표 (같은 작품 내 Universe 이동) */}
             {currentStory && currentStory.universes.length > 1 && (
               <div className="mt-2 flex items-center justify-center gap-3">
@@ -1205,33 +1271,20 @@ export default function Home() {
           </header>
 
 
-          {/* 스크롤 컨테이너 - 스냅 스크롤 적용 (상하 스와이프 = 작품 이동) */}
+          {/* 스크롤 컨테이너 - 일반 스크롤 (스와이프 기능 완전 제거) */}
           <div
             ref={scrollContainerRef}
             className="overflow-y-auto relative"
             style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
+              scrollbarWidth: "thin",
+              msOverflowStyle: "auto",
               WebkitOverflowScrolling: "touch",
-              scrollSnapType: "none", // 스크롤 스냅 완전히 제거
-              scrollSnapAlign: "none", // 스크롤 스냅 정렬 제거
+              scrollSnapType: "none" as const, // 스크롤 스냅 완전히 제거
+              scrollSnapAlign: "none" as const, // 스크롤 스냅 정렬 제거
               height: "calc(100vh - 80px)", // 헤더 높이 제외
-              overflowY: "scroll",
+              overflowY: "auto", // 일반 스크롤
             }}
-            onScroll={(e) => {
-              // 스크롤 스냅 제거로 인해 자동 인덱스 변경 비활성화
-              // 수동 스와이프만으로 작품 전환
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
-            {/* 가이드 문구 */}
-            <div className="fixed top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-              <p className="text-[10px] text-zinc-500/70 text-center px-4 py-1 bg-black/40 backdrop-blur-sm rounded-full">
-                위아래로 스와이프하여 다른 작품 탐험
-              </p>
-            </div>
 
             {/* 모든 작품(Story)을 스택 레이아웃으로 렌더링 */}
             {stories.map((story, storyIdx) => {
@@ -1255,35 +1308,22 @@ export default function Home() {
                 <div
                   key={`story-${story.id}-${storyIdx}`}
                   data-story-index={storyIdx}
-                  className="w-full relative"
-                  style={{
-                    minHeight: "100vh", // 화면 꽉 차게
-                  }}
+                  className="w-full relative min-h-screen"
                 >
-                  {/* 카드 컨테이너 - 화면 전체를 차지 */}
+                  {/* 카드 컨테이너 - 일반 웹사이트처럼 연속 배치 */}
                   <div
-                    className={`relative w-full ${themeBg} transition-all duration-500`}
-                    style={{
-                      minHeight: "100vh", // 화면 꽉 차게
-                    }}
+                    className={`relative w-full ${themeBg} transition-all duration-500 py-8`}
                   >
                     {/* 반투명 검은색 레이어 - 가독성 향상 */}
                     <div className="absolute inset-0 bg-black/40 pointer-events-none z-10" />
                     
-                    {/* 본문 + 댓글을 담는 스크롤 가능한 컨테이너 */}
+                    {/* 본문 + 댓글을 담는 컨테이너 - 일반 스크롤 (스와이프 기능 완전 제거) */}
                     <div 
-                      className="relative w-full overflow-y-auto z-20" 
+                      className="relative w-full z-20" 
                       style={{ 
-                        scrollbarWidth: "thin", 
-                        scrollbarColor: "rgba(255,255,255,0.1) transparent",
                         scrollSnapType: "none" as const, // 스크롤 스냅 완전히 제거
                         scrollSnapAlign: "none" as const, // 스크롤 스냅 정렬 제거
-                        minHeight: "100vh", // 화면 꽉 차게
-                        maxHeight: "100vh", // 최대 높이 제한
                       }}
-                      onTouchStart={isStoryActive ? handleTouchStart : undefined}
-                      onTouchMove={isStoryActive ? handleTouchMove : undefined}
-                      onTouchEnd={isStoryActive ? handleTouchEnd : undefined}
                     >
                       {/* 본문 영역 - 삽화와 텍스트 */}
                       <div className="relative flex flex-col p-5 sm:p-6 pt-[120px] sm:pt-[140px]">
@@ -1891,9 +1931,9 @@ export default function Home() {
                           </div>
                         )}
                         
-                        {/* 첫 번째 스토리 섹션 하단 여백 - 충분히 내린 뒤에만 다음 스토리 보이게 */}
-                        {storyIdx === 0 && (
-                          <div className="pb-[300px]" style={{ minHeight: "300px" }} />
+                        {/* 스토리 간 여백 (일반 스크롤) */}
+                        {storyIdx < stories.length - 1 && (
+                          <div className="pb-16" />
                         )}
                       </div>
                     </div>
