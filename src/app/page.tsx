@@ -515,6 +515,10 @@ export default function Home() {
     const snapshotButton = element.closest('[data-snapshot-button]');
     if (snapshotButton) return true;
     
+    // 입력창 영역 보호
+    const inputArea = element.closest('[data-input-area]');
+    if (inputArea) return true;
+    
     return false;
   }
 
@@ -1081,12 +1085,12 @@ export default function Home() {
           {/* 스크롤 컨테이너 - 스냅 스크롤 적용 (상하 스와이프 = 작품 이동) */}
           <div
             ref={scrollContainerRef}
-            className="overflow-y-auto snap-y snap-mandatory relative"
+            className="overflow-y-auto relative"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
               WebkitOverflowScrolling: "touch",
-              scrollSnapType: "y mandatory",
+              scrollSnapType: "none", // 스크롤 스냅 완전히 제거
               height: "calc(100vh - 80px)", // 헤더 높이 제외
               overflowY: "scroll",
             }}
@@ -1132,11 +1136,9 @@ export default function Home() {
               return (
                 <div
                   key={`story-${story.id}-${storyIdx}`}
-                  className="snap-start snap-always w-full relative"
+                  className="w-full relative"
                   style={{
-                    height: "calc(100vh - 80px)", // 헤더 높이 제외
                     minHeight: "calc(100vh - 80px)",
-                    maxHeight: "calc(100vh - 80px)",
                   }}
                 >
                   {/* 카드 컨테이너 - 화면 전체를 차지 */}
@@ -1381,7 +1383,7 @@ export default function Home() {
                       
                       {/* 입력창 및 버튼 (활성 카드에만 표시) */}
                       {isStoryActive && currentUniverseForStory && (
-                        <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
+                        <div className="mt-12 pt-12 border-t border-white/10 space-y-3 min-h-[60vh]" data-input-area>
                           <p className="text-center text-[13px] text-zinc-500">
                             {story.theme === "dark" 
                               ? "정사(正史)를 뒤엎고 천마의 시대를 여시겠습니까?"
@@ -1560,7 +1562,7 @@ export default function Home() {
                       {story.comments && (
                         <div 
                           data-comments-section
-                          className="mt-8 pt-6 border-t border-white/10 relative bg-gray-900 rounded-t-2xl -mx-5 sm:-mx-6 px-5 sm:px-6 pb-6"
+                          className="mt-16 pt-8 border-t border-white/10 relative bg-gray-900 rounded-t-2xl -mx-5 sm:-mx-6 px-5 sm:px-6 pb-6"
                           style={{ 
                             zIndex: 50,
                           }}
