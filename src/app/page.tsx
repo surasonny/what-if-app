@@ -1283,7 +1283,7 @@ export default function Home() {
               scrollSnapAlign: "none" as const, // 스크롤 스냅 정렬 제거
               height: "calc(100vh - 80px)", // 헤더 높이 제외
               overflowY: "auto", // 일반 스크롤
-            }}
+            } as React.CSSProperties & { scrollSnapType: "none"; scrollSnapAlign: "none"; }}
           >
 
             {/* 모든 작품(Story)을 스택 레이아웃으로 렌더링 */}
@@ -1323,7 +1323,7 @@ export default function Home() {
                       style={{ 
                         scrollSnapType: "none" as const, // 스크롤 스냅 완전히 제거
                         scrollSnapAlign: "none" as const, // 스크롤 스냅 정렬 제거
-                      }}
+                      } as React.CSSProperties & { scrollSnapType: "none"; scrollSnapAlign: "none"; }}
                     >
                       {/* 본문 영역 - 삽화와 텍스트 */}
                       <div className="relative flex flex-col p-5 sm:p-6 pt-[120px] sm:pt-[140px]">
@@ -1546,7 +1546,7 @@ export default function Home() {
                       
                       {/* 입력창 및 버튼 (활성 카드에만 표시) */}
                       {isStoryActive && currentUniverseForStory && (
-                        <div className="mt-12 pt-12 border-t border-white/10 space-y-3 min-h-[60vh]" data-input-area>
+                        <div className="mt-12 pt-12 border-t border-white/10 space-y-3 min-h-[80vh] pb-32" data-input-area>
                           <p className="text-center text-[13px] text-zinc-500">
                             {story.theme === "dark" 
                               ? "정사(正史)를 뒤엎고 천마의 시대를 여시겠습니까?"

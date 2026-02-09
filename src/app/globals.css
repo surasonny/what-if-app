@@ -292,3 +292,15 @@ nextjs-portal {
   left: unset !important;
   top: unset !important;
 }
+
+/* 스크롤 스냅 완전 제거 - !important로 강제 고정 */
+* {
+  scroll-snap-type: none !important;
+  scroll-snap-align: none !important;
+}
+
+/* 스크롤 컨테이너 스냅 제거 */
+div[class*="overflow"] {
+  scroll-snap-type: none !important;
+  scroll-snap-align: none !important;
+}
