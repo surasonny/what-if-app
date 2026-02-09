@@ -1543,7 +1543,7 @@ export default function Home() {
                       
                       {/* 입력창 및 버튼 (활성 카드에만 표시) */}
                       {isStoryActive && currentUniverseForStory && (
-                        <div className="mt-12 pt-12 border-t border-white/10 space-y-3 min-h-[120vh] pb-80" data-input-area>
+                        <div className="mt-12 pt-12 border-t border-white/10 space-y-3 min-h-[120vh] pb-96" data-input-area>
                           <p className="text-center text-[13px] text-zinc-500">
                             {story.theme === "dark" 
                               ? "정사(正史)를 뒤엎고 천마의 시대를 여시겠습니까?"
