@@ -1388,8 +1388,8 @@ export default function Home() {
                           </div>
                         </div>
                         
-                        {/* Universe 제목 영역 */}
-                        {isStoryActive && currentUniverseForStory && (
+                        {/* Universe 제목 영역 - 1·2·3번 스토리 모두 표시 */}
+                        {currentUniverseForStory && (
                           <div className="mb-4">
                             <p className="text-[10px] font-medium uppercase tracking-widest text-violet-400/90">
                               {currentUniverseForStory.scene.heading}
@@ -1400,15 +1400,15 @@ export default function Home() {
                           </div>
                         )}
                         
-                        {/* 폴라로이드 스냅샷 - 제목 바로 아래, 상단 고정 (relative로 텍스트를 자연스럽게 밀어냄) */}
-                        {isStoryActive && currentUniverseForStory && (() => {
-                        // Universe별 강제 이미지 매칭
+                        {/* 폴라로이드 스냅샷 - 제목 바로 아래, 모든 스토리에서 이미지·본문 표시 */}
+                        {currentUniverseForStory && (() => {
+                        // Universe별 이미지: 1번 스토리는 고정 샘플, 2·3번은 scene.imageUrl 강제 표시
                         let displayImageUrl: string | undefined = undefined;
                         if (storyIdx === 0 && currentUniverseIndex === 0) {
                           displayImageUrl = "/images/sample-1.png";
                         } else if (storyIdx === 0 && currentUniverseIndex === 1) {
                           displayImageUrl = "/images/sample-2.png";
-                        } else if (showSnapshot && currentUniverseForStory.scene.imageUrl && storyIdx === currentStoryIndex) {
+                        } else if (currentUniverseForStory.scene.imageUrl) {
                           displayImageUrl = currentUniverseForStory.scene.imageUrl;
                         }
                         
@@ -1514,8 +1514,8 @@ export default function Home() {
                         ) : null;
                       })()}
                       
-                      {/* 본문 텍스트 - 이미지가 있으면 자연스럽게 아래로 밀려남 */}
-                      {isStoryActive && currentUniverseForStory && (
+                      {/* 본문 텍스트 - 1·2·3번 스토리 모두 표시 */}
+                      {currentUniverseForStory && (
                         <div className="space-y-5 text-[17px] leading-[1.82] text-zinc-300 animate-[scene-replace_0.5s_ease-out_0.3s_both]">
                           {Array.isArray(currentUniverseForStory.scene.paragraphs) && currentUniverseForStory.scene.paragraphs.length > 0
                             ? currentUniverseForStory.scene.paragraphs.map((para, i) => {
