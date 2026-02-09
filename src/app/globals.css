@@ -286,3 +286,9 @@ body {
     transform: translateX(1px);
   }
 }
+
+/* Next.js Portal 스타일 오버라이드 - left/top 위치 제거 */
+nextjs-portal {
+  left: unset !important;
+  top: unset !important;
+}
