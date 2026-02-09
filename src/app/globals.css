@@ -293,23 +293,10 @@ nextjs-portal {
   top: unset !important;
 }
 
-/* 스크롤 스냅 완전 제거 - 자석 효과 방지 (모든 요소에 강제 적용) */
+/* 스크롤 스냅 완전 제거 - 자석 효과 방지 (모든 요소에 강제 적용, 손 떼면 멈춤) */
 *,
 *::before,
-*::after,
-html,
-body,
-div,
-main,
-section,
-article,
-header,
-footer,
-nav,
-aside,
-[class*="overflow"],
-[class*="scroll"],
-[style*="scroll-snap"] {
+*::after {
   scroll-snap-type: none !important;
   scroll-snap-align: none !important;
   scroll-snap-stop: normal !important;
@@ -317,4 +304,43 @@ aside,
   -ms-scroll-snap-type: none !important;
   scroll-margin: 0 !important;
   scroll-padding: 0 !important;
+}
+
+html,
+body {
+  scroll-snap-type: none !important;
+  scroll-snap-align: none !important;
+  scroll-snap-stop: normal !important;
+  -webkit-scroll-snap-type: none !important;
+  -ms-scroll-snap-type: none !important;
+}
+
+div,
+main,
+section,
+article,
+header,
+footer,
+nav,
+aside {
+  scroll-snap-type: none !important;
+  scroll-snap-align: none !important;
+  scroll-snap-stop: normal !important;
+  -webkit-scroll-snap-type: none !important;
+  -ms-scroll-snap-type: none !important;
+}
+
+[class*="overflow"],
+[class*="scroll"] {
+  scroll-snap-type: none !important;
+  scroll-snap-align: none !important;
+  scroll-snap-stop: normal !important;
+  -webkit-scroll-snap-type: none !important;
+  -ms-scroll-snap-type: none !important;
+}
+
+[style*="scroll-snap"] {
+  scroll-snap-type: none !important;
+  scroll-snap-align: none !important;
+  scroll-snap-stop: normal !important;
 }
